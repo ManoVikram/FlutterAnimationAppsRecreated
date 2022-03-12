@@ -21,9 +21,9 @@ class _MyAppState extends State<MyApp> {
         ChangeNotifierProvider(
           create: (context) => Cart(),
         ),
-        ChangeNotifierProvider(
+        /* ChangeNotifierProvider(
           create: (context) => PizzaSelectionProvider(),
-        ),
+        ), */
       ],
       child: MaterialApp(
         title: "Learning Flutter Animations",

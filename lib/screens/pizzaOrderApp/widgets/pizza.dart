@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import './pizza_size_button.dart';
+
 import '../models/ingredients.dart';
 import '../models/pizza_size_state.dart';
+
+import '../models/providers/pizza_selection_provider.dart';
 
 class Pizza extends StatefulWidget {
   const Pizza({
@@ -14,8 +18,6 @@ class Pizza extends StatefulWidget {
 }
 
 class PizzaState extends State<Pizza> with TickerProviderStateMixin {
-  final List<Ingredient> _addedIngredients = [];
-
   final ValueNotifier<bool> _pizzaFocusedNotifier = ValueNotifier<bool>(false);
 
   late final AnimationController _animationController;
@@ -29,9 +31,7 @@ class PizzaState extends State<Pizza> with TickerProviderStateMixin {
       ValueNotifier<PizzaSizeState>(
           PizzaSizeState(value: PizzaSizeValues.medium));
 
-  // ValueNotifier can also be used instead of using
-  // setState to update the total price
-  int _totalPrice = 499;
+  final _pizzaKey = GlobalKey();
 
   @override
   void initState() {
@@ -56,20 +56,20 @@ class PizzaState extends State<Pizza> with TickerProviderStateMixin {
     super.dispose();
   }
 
-  Widget _buildIngredients() {
+  Widget _buildIngredients(List<Ingredient> addedIngredients) {
     List<Widget> ingredientElements = [];
 
     if (_allAnimations.isNotEmpty) {
-      for (var i = 0; i < _addedIngredients.length; i++) {
+      for (var i = 0; i < addedIngredients.length; i++) {
         for (var j = 0;
-            j < _addedIngredients[i].ingredientPositions.length;
+            j < addedIngredients[i].ingredientPositions.length;
             j++) {
           final Animation animation = _allAnimations[j];
-          final Offset position = _addedIngredients[i].ingredientPositions[j];
+          final Offset position = addedIngredients[i].ingredientPositions[j];
           final double x = position.dx;
           final double y = position.dy;
 
-          if (i == _addedIngredients.length - 1) {
+          if (i == addedIngredients.length - 1) {
             double fromX = 0.0, fromY = 0.0;
 
             if (j < 1) {
@@ -82,6 +82,8 @@ class PizzaState extends State<Pizza> with TickerProviderStateMixin {
               fromY = _pizzaBoxConstraints.maxHeight * (1 - animation.value);
             }
 
+            print(ingredients[i].toppingImage);
+
             if (animation.value > 0) {
               ingredientElements.add(
                 Opacity(
@@ -93,8 +95,8 @@ class PizzaState extends State<Pizza> with TickerProviderStateMixin {
                         fromY + _pizzaBoxConstraints.maxHeight * y,
                       ),
                     child: Image.asset(
-                      ingredients[i].toppingImage,
-                      height: 40.0,
+                      addedIngredients[i].toppingImage,
+                      height: 30.0,
                     ),
                   ),
                 ),
@@ -109,8 +111,8 @@ class PizzaState extends State<Pizza> with TickerProviderStateMixin {
                     _pizzaBoxConstraints.maxHeight * y,
                   ),
                 child: Image.asset(
-                  ingredients[i].toppingImage,
-                  height: 40.0,
+                  addedIngredients[i].toppingImage,
+                  height: 30.0,
                 ),
               ),
             );
@@ -128,6 +130,7 @@ class PizzaState extends State<Pizza> with TickerProviderStateMixin {
 
   void _buildIngredientsAnimation() {
     _allAnimations.clear();
+
     _allAnimations.add(
       CurvedAnimation(
         parent: _animationController,
@@ -182,6 +185,9 @@ class PizzaState extends State<Pizza> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    final PizzaSelectionProvider _pizzaSelectionProvider =
+        context.watch<PizzaSelectionProvider>();
+
     return Stack(
       children: [
         Column(
@@ -189,36 +195,28 @@ class PizzaState extends State<Pizza> with TickerProviderStateMixin {
             // Pizza Image
             Expanded(
               child: DragTarget<Ingredient>(
-                onAccept: (ingredient) {
+                onAccept: (Ingredient ingredient) {
                   print("onAccept");
 
                   _pizzaFocusedNotifier.value = false;
 
-                  setState(() {
-                    _addedIngredients.add(ingredient);
-                    _totalPrice += 20;
-                  });
+                  _pizzaSelectionProvider.addIngredient(ingredient);
 
                   _buildIngredientsAnimation();
 
                   _animationController.forward(from: 0.0);
                 },
-                onWillAccept: (ingredient) {
+                onWillAccept: (Ingredient? ingredient) {
                   print("onWillAccept");
 
                   _pizzaFocusedNotifier.value = true;
 
-                  // If the ingredient is already added, it returns false
-                  // else return true.
-                  for (Ingredient ingridint in _addedIngredients) {
-                    if (ingridint.compare(ingredient!)) {
-                      return false;
-                    }
-                  }
+                  bool isIngredientPresent =
+                      _pizzaSelectionProvider.isIngredientPresent(ingredient!);
 
-                  return true;
+                  return !isIngredientPresent;
                 },
-                onLeave: (ingredient) {
+                onLeave: (Ingredient? ingredient) {
                   print("onLeave");
 
                   _pizzaFocusedNotifier.value = false;
@@ -231,59 +229,66 @@ class PizzaState extends State<Pizza> with TickerProviderStateMixin {
                       return ValueListenableBuilder<PizzaSizeState>(
                           valueListenable: _pizzaSizeStateNotifier,
                           builder: (context, pizzaSize, child) {
-                            return RotationTransition(
-                              turns: CurvedAnimation(
-                                parent: _rotationAnimationController,
-                                curve: Curves.decelerate,
-                              ),
-                              child: Stack(
-                                children: [
-                                  Center(
-                                    child: ValueListenableBuilder<bool>(
-                                      valueListenable: _pizzaFocusedNotifier,
-                                      builder: (context, value, child) {
-                                        return AnimatedContainer(
-                                          duration:
-                                              const Duration(milliseconds: 300),
-                                          height: value
-                                              ? constraints.maxHeight *
-                                                  pizzaSize.factor
-                                              : constraints.maxHeight *
-                                                      pizzaSize.factor -
-                                                  20.0,
-                                          // margin: const EdgeInsets.all(10.0),
-                                          child: Stack(
-                                            children: [
-                                              DecoratedBox(
-                                                decoration: const BoxDecoration(
-                                                  shape: BoxShape.circle,
-                                                  boxShadow: [
-                                                    BoxShadow(
-                                                      color: Colors.black12,
-                                                      blurRadius: 20.0,
-                                                      offset: Offset(5.0, 8.0),
-                                                      spreadRadius: 5.0,
-                                                    ),
-                                                  ],
+                            return RepaintBoundary(
+                              key: _pizzaKey,
+                              child: RotationTransition(
+                                turns: CurvedAnimation(
+                                  parent: _rotationAnimationController,
+                                  curve: Curves.decelerate,
+                                ),
+                                child: Stack(
+                                  children: [
+                                    Center(
+                                      child: ValueListenableBuilder<bool>(
+                                        valueListenable: _pizzaFocusedNotifier,
+                                        builder: (context, value, child) {
+                                          return AnimatedContainer(
+                                            duration: const Duration(
+                                                milliseconds: 300),
+                                            height: value
+                                                ? constraints.maxHeight *
+                                                    pizzaSize.factor
+                                                : constraints.maxHeight *
+                                                        pizzaSize.factor -
+                                                    20.0,
+                                            // margin: const EdgeInsets.all(10.0),
+                                            child: Stack(
+                                              children: [
+                                                DecoratedBox(
+                                                  decoration:
+                                                      const BoxDecoration(
+                                                    shape: BoxShape.circle,
+                                                    boxShadow: [
+                                                      BoxShadow(
+                                                        color: Colors.black12,
+                                                        blurRadius: 20.0,
+                                                        offset:
+                                                            Offset(5.0, 8.0),
+                                                        spreadRadius: 5.0,
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  child: Image.asset(
+                                                      "lib/screens/pizzaOrderApp/assets/dish.png"),
                                                 ),
-                                                child: Image.asset(
-                                                    "lib/screens/pizzaOrderApp/assets/dish.png"),
-                                              ),
-                                              Image.asset(
-                                                  "lib/screens/pizzaOrderApp/assets/pizza-0.png"),
-                                            ],
-                                          ),
-                                        );
+                                                Image.asset(
+                                                    "lib/screens/pizzaOrderApp/assets/pizza-0.png"),
+                                              ],
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                    AnimatedBuilder(
+                                      animation: _animationController,
+                                      builder: (context, child) {
+                                        return _buildIngredients(
+                                            _pizzaSelectionProvider
+                                                .getAddedIngredients);
                                       },
                                     ),
-                                  ),
-                                  AnimatedBuilder(
-                                    animation: _animationController,
-                                    builder: (context, child) {
-                                      return _buildIngredients();
-                                    },
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
                             );
                           });
@@ -311,7 +316,7 @@ class PizzaState extends State<Pizza> with TickerProviderStateMixin {
                 );
               },
               child: Text(
-                "₹$_totalPrice",
+                "₹${_pizzaSelectionProvider.getTotalCost}",
                 key: UniqueKey(),
                 style: const TextStyle(
                   color: Colors.brown,

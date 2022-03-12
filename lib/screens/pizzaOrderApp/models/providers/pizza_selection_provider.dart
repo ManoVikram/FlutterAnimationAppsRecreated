@@ -1,14 +1,19 @@
 import 'package:flutter/foundation.dart';
-import 'package:learning_flutter_animations/screens/pizzaOrderApp/models/ingredients.dart';
+
+import '../ingredients.dart';
 
 class PizzaSelectionProvider extends ChangeNotifier {
   final List<Ingredient> _addedIngredients = [];
+
+  Ingredient? _deletedIngredient;
 
   int _totalCost = 499;
 
   List<Ingredient> get getAddedIngredients => _addedIngredients;
 
   int get getTotalCost => _totalCost;
+
+  Ingredient? get getDeletedIngredient => _deletedIngredient;
 
   void addIngredient(Ingredient ingredient) {
     _addedIngredients.add(ingredient);
@@ -18,10 +23,15 @@ class PizzaSelectionProvider extends ChangeNotifier {
   }
 
   void removeIngredient(Ingredient ingredient) {
+    _deletedIngredient = ingredient;
     _addedIngredients.remove(ingredient);
     _totalCost -= 20;
 
     notifyListeners();
+  }
+
+  void refreshDeletedIngredient() {
+    _deletedIngredient = null;
   }
 
   bool isIngredientPresent(Ingredient ingredient) {
