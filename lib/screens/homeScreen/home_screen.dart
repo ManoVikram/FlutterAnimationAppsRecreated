@@ -19,6 +19,7 @@ import '../dbrand_skin_selection/dbrand_home_screen.dart';
 import '../nikeConcept/nike_home_screen.dart';
 import '../googleMessages/google_messages_home_screen.dart';
 import '../nikeShoeStore/nike_store_home_screen.dart';
+import '../animatedLoadingScreen/animated_loading_home_screen.dart';
 
 import './widgets/my_button.dart';
 
@@ -288,6 +289,19 @@ class HomeScreen extends StatelessWidget {
                       context,
                       MaterialPageRoute(
                         builder: (context) => const PizzaOrderHomeScreen(),
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 10),
+                MyButton(
+                  size: size,
+                  text: "Animated Loading Screen",
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const AnimatedLoadingHomeScreen(),
                       ),
                     );
                   },

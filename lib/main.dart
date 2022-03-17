@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:learning_flutter_animations/screens/pizzaOrderApp/models/providers/pizza_selection_provider.dart';
 import 'package:provider/provider.dart';
 
 import './screens/homeScreen/home_screen.dart';
