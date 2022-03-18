@@ -16,7 +16,7 @@ class NikeShoeDetailsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    WidgetsBinding.instance!.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       isFABVisible.value = true;
     });
 
