@@ -8,6 +8,7 @@ import '../coffeeApp/coffee_home_screen.dart';
 import '../customAnimations/custom_animation.dart';
 import '../animatedAuthentication/authentication_home_screen.dart';
 import '../explandableNavBar/expandable_nav_bar_home_screen.dart';
+import '../flightSurvey/homeScreen/home_screen.dart';
 import '../groceryApp/grocery_home_screen.dart';
 import '../groceryStore/grocery_home_screen.dart';
 import '../pizzaOrderApp/pizza_order_home_screen.dart';
@@ -306,6 +307,20 @@ class HomeScreen extends StatelessWidget {
                     );
                   },
                 ),
+                const SizedBox(height: 10),
+                MyButton(
+                  size: size,
+                  text: "Flight Survey",
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const FlightSurveyHomeScreen(),
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 10),
               ],
             ),
           ),
