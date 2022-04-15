@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 
 import './models/question.dart';
+import './widgets/option.dart';
+import './widgets/question_number.dart';
+import './widgets/question_text.dart';
+import './widgets/dot.dart';
 
 class FlightSurveyHomeScreen extends StatefulWidget {
   const FlightSurveyHomeScreen({Key? key}) : super(key: key);
@@ -9,14 +13,22 @@ class FlightSurveyHomeScreen extends StatefulWidget {
   State<FlightSurveyHomeScreen> createState() => _FlightSurveyHomeScreenState();
 }
 
-class _FlightSurveyHomeScreenState extends State<FlightSurveyHomeScreen> {
+class _FlightSurveyHomeScreenState extends State<FlightSurveyHomeScreen>
+    with SingleTickerProviderStateMixin {
   late List<GlobalKey<_ItemFadeTranslaterState>> keys;
+
+  late final AnimationController _animationController;
 
   int currentQuestion = 0;
 
   @override
   void initState() {
     super.initState();
+
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
 
     //! There are 5 differnt elements I need to animate
     //! so, I'm using 5 different keys
@@ -38,9 +50,6 @@ class _FlightSurveyHomeScreenState extends State<FlightSurveyHomeScreen> {
   Future<void> onTap() async {
     for (GlobalKey<_ItemFadeTranslaterState> key in keys) {
       await Future.delayed(const Duration(milliseconds: 50));
-      // RenderBox? object = context.findRenderObject() as RenderBox?;
-      // Offset? globalPosition = object?.localToGlobal(Offset.zero);
-      // await key.currentState?.animateDot(globalPosition!);
       key.currentState?.hide();
     }
 
@@ -55,6 +64,38 @@ class _FlightSurveyHomeScreenState extends State<FlightSurveyHomeScreen> {
 
       onInit();
     });
+  }
+
+  Future<void> onTapAnimateDot(double height) async {
+    _animationController.forward();
+
+    RenderBox? object = context.findRenderObject() as RenderBox?;
+    Offset? globalPosition = object?.localToGlobal(Offset.zero);
+
+    OverlayEntry entry = OverlayEntry(
+      builder: (context) {
+        // double top = MediaQuery.of(context).padding.top;
+
+        return AnimatedBuilder(
+          animation: _animationController,
+          builder: (context, child) {
+            return Positioned(
+              left: 70.0,
+              top: height +
+                  (globalPosition!.dy - height) * (_animationController.value),
+              child: child!,
+            );
+          },
+          child: const Dot(),
+        );
+      },
+    );
+
+    Overlay.of(context)?.insert(entry);
+    await _animationController.forward(from: 0.0);
+    entry.remove();
+
+    onTap();
   }
 
   @override
@@ -160,7 +201,9 @@ class _FlightSurveyHomeScreenState extends State<FlightSurveyHomeScreen> {
                               key: keys[2],
                               child: Option(
                                 size: _size,
-                                onTap: onTap,
+                                onTap: () async {
+                                  await onTapAnimateDot(_size.height * 0.6);
+                                },
                                 // answer: "Less than two hours",
                                 answer: questions[currentQuestion].option1,
                               ),
@@ -170,7 +213,9 @@ class _FlightSurveyHomeScreenState extends State<FlightSurveyHomeScreen> {
                               key: keys[3],
                               child: Option(
                                 size: _size,
-                                onTap: onTap,
+                                onTap: () async {
+                                  await onTapAnimateDot(_size.height * 0.7);
+                                },
                                 // answer:
                                 //     "More than two but less than five hours",
                                 answer: questions[currentQuestion].option2,
@@ -181,7 +226,9 @@ class _FlightSurveyHomeScreenState extends State<FlightSurveyHomeScreen> {
                               key: keys[4],
                               child: Option(
                                 size: _size,
-                                onTap: onTap,
+                                onTap: () async {
+                                  await onTapAnimateDot(_size.height * 0.8);
+                                },
                                 // answer: "Others",
                                 answer: questions[currentQuestion].option3,
                               ),
@@ -197,142 +244,6 @@ class _FlightSurveyHomeScreenState extends State<FlightSurveyHomeScreen> {
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class QuestionText extends StatelessWidget {
-  const QuestionText({
-    Key? key,
-    required Size size,
-    required this.text,
-  })  : _size = size,
-        super(key: key);
-
-  final Size _size;
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        const SizedBox(width: 30.0),
-        SizedBox(
-          width: _size.width * 0.72,
-          child: Text(
-            text,
-            overflow: TextOverflow.clip,
-            maxLines: 3,
-            style: const TextStyle(
-              color: Colors.white70,
-              fontSize: 24.0,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class QuestionNumber extends StatelessWidget {
-  const QuestionNumber({
-    Key? key,
-    required this.questionNumber,
-  }) : super(key: key);
-
-  final String questionNumber;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        const SizedBox(width: 30.0),
-        Text(
-          questionNumber,
-          style: const TextStyle(
-            color: Colors.white60,
-            fontSize: 72.0,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class Option extends StatelessWidget {
-  const Option({
-    Key? key,
-    required Size size,
-    required this.answer,
-    required this.onTap,
-  })  : _size = size,
-        super(key: key);
-
-  final Size _size;
-  final String answer;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Row(
-        children: [
-          const Dot(),
-          const SizedBox(width: 24.0),
-          Answer(
-            size: _size,
-            answerText: answer,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class Answer extends StatelessWidget {
-  const Answer({
-    Key? key,
-    required Size size,
-    required this.answerText,
-  })  : _size = size,
-        super(key: key);
-
-  final Size _size;
-  final String answerText;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: _size.width * 0.7,
-      child: Text(
-        answerText,
-        overflow: TextOverflow.clip,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 24.0,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
-  }
-}
-
-class Dot extends StatelessWidget {
-  const Dot({
-    Key? key,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 10.0,
-      width: 10.0,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        shape: BoxShape.circle,
       ),
     );
   }
@@ -372,11 +283,9 @@ class _ItemFadeTranslaterState extends State<ItemFadeTranslater>
     _animationController.reverse();
   }
 
-  Future<void> animateDot(Offset startOffset) async {
+  /* Future<void> animateDot(Offset startOffset) async {
     RenderBox? object = context.findRenderObject() as RenderBox?;
     Offset? globalPosition = object?.localToGlobal(Offset.zero);
-
-    print(globalPosition);
 
     OverlayEntry entry = OverlayEntry(
       builder: (context) {
@@ -400,7 +309,7 @@ class _ItemFadeTranslaterState extends State<ItemFadeTranslater>
     Overlay.of(context)?.insert(entry);
     await _animationController.forward(from: 0.0);
     entry.remove();
-  }
+  } */
 
   @override
   void initState() {
