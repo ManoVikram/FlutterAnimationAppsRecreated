@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:learning_flutter_animations/screens/web_scroll_01/web_scroll_01_home_screen.dart';
 import 'package:provider/provider.dart';
 
 import './screens/homeScreen/home_screen.dart';
@@ -42,8 +43,8 @@ class LearningFlutterAnimations extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: HomeScreen(),
+    return Scaffold(
+      body: WebScroll01HomeScreen(),
     );
   }
 }
