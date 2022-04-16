@@ -21,8 +21,9 @@ import '../nikeConcept/nike_home_screen.dart';
 import '../googleMessages/google_messages_home_screen.dart';
 import '../nikeShoeStore/nike_store_home_screen.dart';
 import '../animatedLoadingScreen/animated_loading_home_screen.dart';
-
 import '../web_scroll_01/web_scroll_01_home_screen.dart';
+import '../parallaxScrollAnimation/parallax_scroll_animation.dart';
+
 import './widgets/my_button.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -330,6 +331,19 @@ class HomeScreen extends StatelessWidget {
                       context,
                       MaterialPageRoute(
                         builder: (context) => WebScroll01HomeScreen(),
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 10),
+                MyButton(
+                  size: size,
+                  text: "Parallax Scroll",
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ParallxScrollAnimation(),
                       ),
                     );
                   },

@@ -43,8 +43,8 @@ class LearningFlutterAnimations extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: WebScroll01HomeScreen(),
+    return const Scaffold(
+      body: HomeScreen(),
     );
   }
 }
